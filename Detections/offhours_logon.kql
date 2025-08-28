@@ -1,0 +1,6 @@
+SecurityEvent
+| where TimeGenerated > ago(1d)
+| where EventID == 4624 and LogonType in (2,10) // local or RDP
+| extend Hour = datetime_part("Hour", TimeGenerated), Dow = dayofweek(TimeGenerated)
+| where Hour < 8 or Hour > 19 or Dow in ("Saturday","Sunday")
+| project TimeGenerated, Account, Computer, LogonType, Hour, Dow
