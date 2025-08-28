@@ -1,0 +1,22 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure KQL files exist and are non-empty
+        run: |
+          shopt -s nullglob
+          files=(detections/*.kql)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No KQL files found"; exit 1
+          fi
+          for f in "${files[@]}"; do
+            if [ ! -s "$f" ]; then echo "Empty file: $f"; exit 1; fi
+          done
+          echo "Basic KQL presence check passed."
