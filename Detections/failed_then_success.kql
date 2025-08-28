@@ -1,0 +1,17 @@
+let timeframe = 1h;
+let window = 5m;
+let fails =
+  SecurityEvent
+  | where TimeGenerated > ago(timeframe)
+  | where EventID == 4625
+  | summarize FailedCount = count() by Account, Computer, bin(TimeGenerated, window);
+let succ =
+  SecurityEvent
+  | where TimeGenerated > ago(timeframe)
+  | where EventID == 4624 and LogonType in (2,3,10)
+  | project Account, Computer, SuccTime = TimeGenerated;
+fails
+| where FailedCount >= 5
+| join kind=inner succ on Account, Computer
+| where SuccTime between (TimeGenerated .. TimeGenerated + window)
+| project AlertTime=SuccTime, Account, Computer, FailedCount
